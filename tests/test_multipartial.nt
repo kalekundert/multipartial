@@ -18,12 +18,25 @@ test_multipartial:
       0: g(1, 2, 0)
       1: g(1, 0, 3)
   -
+    id: 1d-args-put-int-negative
+    partials: multipartial[2](g, 1, put[-1](2, 0), put[-2](3, 0))
+    expected:
+      0: g(1, 0, 3)
+      1: g(1, 2, 0)
+  -
     id: 1d-args-put-slice
     partials: multipartial[3](g, 1, put[:2](2, 0), put[1:](3, 0))
     expected:
       0: g(1, 2, 0)
       1: g(1, 2, 3)
       2: g(1, 0, 3)
+  -
+    id: 1d-args-put-slice-negative
+    partials: multipartial[3](g, 1, put[-2:](2, 0), put[:-1](3, 0))
+    expected:
+      0: g(1, 0, 3)
+      1: g(1, 2, 3)
+      2: g(1, 2, 0)
   -
     id: 1d-kwargs-scalar
     partials: multipartial[2](g, a=1, b=2)
@@ -96,6 +109,18 @@ test_multipartial:
     error:
       type: ValueError
       message: found different-length arguments for dimension 0
+  -
+    id: 1d-err-put-oob-low
+    partials: multipartial[2](g, 1, put[-3](2, 0))
+    error:
+      type: IndexError
+      message: index -3 is out of bounds for dimension 0 (size 2)
+  -
+    id: 1d-err-put-oob-high
+    partials: multipartial[2](g, 1, put[2](2, 0))
+    error:
+      type: IndexError
+      message: index 2 is out of bounds for dimension 0 (size 2)
 
   -
     id: 2d-args-scalar
@@ -138,6 +163,16 @@ test_multipartial:
       1,1: g(1, 0, 0)
       1,2: g(1, 0, 3)
   -
+    id: 2d-args-put-int-negative
+    partials: multipartial[2,3](g, 1, put[-1,-1](2, 0), put[-2,-3](3, 0))
+    expected:
+      0,0: g(1, 0, 3)
+      0,1: g(1, 0, 0)
+      0,2: g(1, 0, 0)
+      1,0: g(1, 0, 0)
+      1,1: g(1, 0, 0)
+      1,2: g(1, 2, 0)
+  -
     id: 2d-args-put-slice
     partials: multipartial[2,3](g, 1, put[:,:2](2, 0), put[1:,1:](3, 0))
     expected:
@@ -147,6 +182,16 @@ test_multipartial:
       1,0: g(1, 2, 0)
       1,1: g(1, 2, 3)
       1,2: g(1, 0, 3)
+  -
+    id: 2d-args-put-slice-negative
+    partials: multipartial[2,3](g, 1, put[:,-2:](2, 0), put[:-1,:-1](3, 0))
+    expected:
+      0,0: g(1, 0, 3)
+      0,1: g(1, 2, 3)
+      0,2: g(1, 2, 0)
+      1,0: g(1, 0, 0)
+      1,1: g(1, 2, 0)
+      1,2: g(1, 2, 0)
   -
     id: 2d-kwargs-dim
     partials: multipartial[2,3](g, a=1, b=dim[0](2, 3), c=dim[1](4, 5, 6))

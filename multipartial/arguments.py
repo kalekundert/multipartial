@@ -9,6 +9,9 @@ class Multiargument:
     def require_dim_size(self, ijk):
         raise NotImplementedError
 
+    def on_resolve_shape(self, shape):
+        pass
+
     def get_value(self, ijk):
         raise NotImplementedError
 
@@ -41,30 +44,48 @@ class Dimension(Multiargument):
 class Put(Multiargument):
 
     def __init__(self, region, inside, outside):
+        self.region = region
+        self.inside = inside
+        self.outside = outside
+
+    def require_ndim(self):
+        return len(self.region)
+
+    def require_dim_size(self, i):
+        return 0
+
+    def on_resolve_shape(self, shape):
         min_ijk = []
         max_ijk = []
 
-        for i in region:
-            match i:
+        def index_from_int(x, i):
+            x_orig = x
+            if x < 0:
+                x += shape[i]
+            if x < 0 or x >= shape[i]:
+                raise IndexError(f"index {x_orig} is out of bounds for dimension {i} (size {shape[i]})")
+            return x
+
+        def index_from_slice_start(x, i):
+            return index_from_int(x.start or 0, i)
+
+        def index_from_slice_stop(x, i):
+            y = (shape[i] if x.stop is None else x.stop) - 1
+            return index_from_int(y, i)
+
+        for i, x in enumerate(self.region):
+            match x:
                 case int():
-                    min_ijk.append(i)
-                    max_ijk.append(i)
+                    min_ijk.append(index_from_int(x, i))
+                    max_ijk.append(index_from_int(x, i))
                 case slice():
-                    min_ijk.append(i.start)
-                    max_ijk.append(j if (j := i.stop) is None else j - 1)
+                    min_ijk.append(index_from_slice_start(x, i))
+                    max_ijk.append(index_from_slice_stop(x, i))
                 case _:
                     raise AssertionError
 
         self.min_ijk = tuple(min_ijk)
         self.max_ijk = tuple(max_ijk)
-        self.inside = inside
-        self.outside = outside
-
-    def require_ndim(self):
-        return len(self.min_ijk)
-
-    def require_dim_size(self, i):
-        return 0
 
     def get_value(self, ijk):
         above_min = all(

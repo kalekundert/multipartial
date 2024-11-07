@@ -21,6 +21,9 @@ class Multipartial:
         multiargs = wrapped_args + list(wrapped_kwargs.values())
         shape = resolve_shape(self.shape, multiargs)
 
+        for arg in multiargs:
+            arg.on_resolve_shape(shape)
+
         def make_func_i(i):
             args_i = [x.get_value(i) for x in wrapped_args]
             kwargs_i = {k: v.get_value(i) for k, v in wrapped_kwargs.items()}
