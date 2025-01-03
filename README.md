@@ -14,7 +14,7 @@ partial functions where the `a` argument varies by row, the `b` argument varies
 by column, the `c` argument is always the same, and the `d` argument is 
 specified at call-time:
 
-```
+```pycon
 >>> from multipartial import multipartial, dim
 >>> def f(a, b, c, d):
 ...     return a, b, c, d
